@@ -1,0 +1,82 @@
+<!-- Почему это не работает? -->
+<!-- Это абсолютное совпадение с макетом — цвета, размеры, адаптивность... -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        *,
+        *::before,
+        *::after {
+        box-sizing: border-box;
+        }
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        p,
+        ul[class],
+        ol[class],
+        li,
+        figure,
+        figcaption,
+        blockquote,
+        dl,
+        dd {
+        margin: 0;
+        }
+    </style>
+
+    <style>
+        .width-full-screen {width: 100%;}
+        .box-50 {padding: 50px}
+        .header-box {height: 50px; background-color: #ff9100;}
+        .footer-box {height: 100px; background-color: #ff9100;}
+        .red-box-content {height: 50px;}
+        .red-1 {background-color: #8c0021;}
+        .red-2 {background-color: #e1000f;}
+        .red-3 {background-color: #ff3333;}
+        .red-4 {background-color: #ff9e94;}
+        .purple-1 {background-color: #2b1a82;}
+        .purple-2 {background-color: #944dff;}
+        .purple-3 {background-color: #662cdb;}
+        .purple-4 {background-color: #d1a2ff;}
+        .blue-1 {background-color: #91cfff;}
+        .blue-2 {background-color: #3392ff;}
+        .blue-3 {background-color: #0066db;}
+        .blue-4 {background-color: #003d82;}
+        .purple-box-left {padding: 50px 0 50px 50px; width: 50%}
+        .purple-box-right {padding: 50px 50px 50px 0; width: 50%}
+        .purple-box-child {height: 50px;}
+        .purple-container {display: flex; flex-wrap: wrap;}
+        .blue-box {height: 50px; width: 25%}
+    </style>
+</head>
+<body>
+    <div class="header-box width-full-screen"></div>
+    <div class="box-50 red-1 width-full-screen">
+        <div class="box-50 red-2">
+            <div class="box-50 red-3">
+                <div class="red-4 red-box-content"></div>
+            </div>
+        </div>
+    </div>
+    <div class="purple-container width-full-screen">
+        <div class="purple-1 purple-box-left">
+            <div class="purple-2 purple-box-child"></div>
+        </div>
+        <div class="purple-3 purple-box-right">
+            <div class="purple-4 purple-box-child"></div>
+        </div>
+    </div>
+    <div class="purple-container width-full-screen">
+        <div class="blue-1 blue-box"></div>
+        <div class="blue-2 blue-box"></div>
+        <div class="blue-3 blue-box"></div>
+        <div class="blue-4 blue-box"></div>
+    </div>
+    <div class="footer-box width-full-screen"></div>
+</body>
+</html>

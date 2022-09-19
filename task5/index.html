@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Почта с тегами</title>
+  <meta charset='utf-8'>
+  <style>
+    .Page {
+      font-family: Arial;
+      font-size: 12px;
+      margin: 0;
+      padding: 0;
+      color: #2f2d33;
+    }
+
+    .Logo {
+      font-size: 24px;
+      padding: 12px;
+      margin: 0;
+    }
+
+    .Main {
+      display: flex;
+    }
+
+    .Tags {
+      width: 25%;
+      background-color: #fffae5;
+      padding: 6px;
+    }
+
+    .Tags_dropzone {
+      background-color: #ffedba;
+    }
+
+    .Tags_dragovered {
+      background-color: #ffd98e;
+    }
+
+    .Tags_dragovered * {
+      pointer-events: none;
+    }
+
+    .Tag {
+      background-color: #ffc062;
+      color: #592400;
+      margin: 6px;
+      padding: 6px;
+      display: inline-block;
+    }
+
+    .Tag_dragged {
+      background-color: #ff9100;
+    }
+
+    .Tag_removed {
+      display: none;
+    }
+
+    .Letters {
+      width: 100%;
+      background-color: #91cfff;
+    }
+
+    .Letters_dropzone {
+      background-color: #4da0ff;
+    }
+
+    .Letter {
+      display: flex;
+      color: #00244d;
+      cursor: move;
+    }
+
+    .Letter_dragovered {
+      background-color: #006fed;
+    }
+
+    .Letter_dragovered * {
+      pointer-events: none;
+    }
+
+    .Letter__Title {
+      margin: 12px;
+    }
+  </style>
+</head>
+
+<body class="Page">
+  <script>
+    let data = window.data || {
+      tags: {
+        '1': 'важное',
+        '2': 'личное',
+        '3': 'рабочее',
+        '4': 'Проект X',
+        '5': 'Проект Y'
+      },
+      letters: [
+        {
+          id: '1',
+          title: 'Приглашение на день рождения',
+          tags: ['1', '2']
+        },
+        {
+          id: '2',
+          title: 'Ответ на ваш комментарий',
+          tags: ['2']
+        },
+        {
+          id: '3',
+          title: 'Резюме последней встречи про X',
+          tags: ['3', '4']
+        },
+        {
+          id: '4',
+          title: 'Расчётный лист',
+          tags: ['1', '3']
+        },
+        {
+          id: '5',
+          title: 'Нужна помощь с Y',
+          tags: ['3', '5']
+        },
+        {
+          id: '6',
+          title: 'Регулярная рассылка для клиентов',
+          tags: []
+        }
+      ]
+    }
+
+    function mapAndJoin(a, f, s = '') { return a.map(f).join(s) }
+    function buildHtml(data) {
+      return `
+      <div class="Main">
+        <div class="Tags Droppable">
+          ${mapAndJoin(
+        Object.entries(data.tags),
+        ([id, title]) => buildTagHtml(id, title))}
+        </div>
+        <div class="Letters">
+          ${mapAndJoin(
+          data.letters,
+          ({ id, title, tags }) => `
+              <div class="Letter Droppable" data-letter-id="${id}">
+                <div class="Letter__Title">${title}</div>
+                ${mapAndJoin(tags, (l) => buildTagHtml(l, data.tags[l]))}
+              </div>
+            `)}
+        </div>
+      </div>
+    `
+    }
+    function buildTagHtml(id, title) {
+      return `<div class="Tag" draggable="true" data-tag-id="${id}">${title}</div>`
+    }
+
+    document.body.innerHTML = buildHtml(data);
+
+    // solution block start
+    
+    let dropTargets = document.querySelectorAll(".Droppable");
+    let tagElements = document.querySelectorAll(".Tag");
+    let letterElements = document.querySelectorAll(".Letter");
+    let lettersElement = document.querySelector(".Letters");
+    let tagsElement = document.querySelector(".Tags");
+
+    let draggableElement = this;
+    let elementDragsFrom = this.parentElement;
+
+    function tagDragStartHandler(event) {
+      let target = event.target;
+      target.classList.add("Tag_dragged");
+      lettersElement.classList.toggle("Letters_dropzone");
+      if (target.closest(".Letters") == lettersElement) {
+        tagsElement.classList.toggle("Tags_dropzone");
+      }
+
+      draggableElement = this;
+      elementDragsFrom = this.parentElement;
+      event.dataTransfer.effectAllowed = "copyMove";
+      event.dataTransfer.setData("text/html", this.innerHTML);
+    }
+
+    function dragOverHandler(event) {
+      event.preventDefault();
+      return false;
+    }
+
+    function tagsDragEnterHandler(event) {
+      let target = event.target;
+
+      console.log(target);
+
+      if ( target.classList.contains("Tags") && elementDragsFrom.classList.contains("Letter") ) {
+        if (!target.classList.contains("Tags_dragovered")) {
+          target.classList.add("Tags_dragovered");
+        }
+      }
+    }
+
+    function letterDragEnterHandler(event) {
+      let target = event.target;
+
+      console.log(target);
+
+      if ( target.classList.contains("Letter") && !isLetterContainsTag(target, draggableElement) ) {
+        if (!target.classList.contains("Letter_dragovered")) {
+          target.classList.add("Letter_dragovered");
+        }
+      }
+    }
+
+    // function tagDragLeaveHandler(event) {} 
+    // По хорошему, нужно написать обработчик dragleave для удаления классов, которые добавляются на событии dragenter
+
+    function tagDragEndHandler(event) {
+      lettersElement.classList.toggle("Letters_dropzone");
+      tagsElement.classList.toggle("Tags_dropzone");
+      event.target.classList.remove("Tag_dragged");
+      letterElements.forEach((elem) => {
+        elem.classList.remove("Letter_dragovered");
+      });
+      tagsElement.classList.remove("Tags_dragovered");
+    }
+
+    function dropHandler(event) {
+      event.stopPropagation();
+      target = event.target;
+      
+      if ( !isLetterContainsTag(target, draggableElement) ) {
+        if ( target.classList.contains("Letter") ) {
+          target.append(draggableElement.cloneNode(true));
+          let letterTagsData = data.letters[getLetterIndexById(this.dataset.letterId)].tags;
+          letterTagsData.push(draggableElement.dataset.tagId);
+        }
+        
+        if ( elementDragsFrom.classList.contains("Letter") && draggableElement !== target ) {
+          draggableElement.remove();
+          let letter = data.letters[getLetterIndexById(elementDragsFrom.dataset.letterId)];
+          tagIndex = letter.tags.indexOf(draggableElement.dataset.tagId);
+          letter.tags.splice(tagIndex, 1);
+        }
+      }
+    }
+
+    tagElements.forEach(element => {
+      element.addEventListener("dragstart", tagDragStartHandler);
+      element.addEventListener("dragend", tagDragEndHandler);
+      element.addEventListener("dragover", dragOverHandler);
+    });
+    dropTargets.forEach(element => {
+      element.addEventListener("dragover", dragOverHandler);
+      element.addEventListener("drop", dropHandler);
+    })
+    tagsElement.addEventListener("dragenter", tagsDragEnterHandler);
+    letterElements.forEach(element => element.addEventListener("dragenter", letterDragEnterHandler));
+
+    function getLetterIndexById(letterId) { return data.letters.findIndex((l) => l.id === letterId); }
+
+    function isLetterContainsTag(letterElement, tagElement) {
+      let letterId = letterElement.dataset.letterId;
+      let tagId = tagElement.dataset.tagId;
+      let letterTags = data.letters[getLetterIndexById(letterId)]?.tags;
+      return letterTags.includes(tagId);
+    }
+
+    // solution block end
+    // Лучшее Худшее, Но Правильное Решение Задачи 2022
+
+    window.onSolutionReady && window.onSolutionReady();
+  </script>
+</body>
+
+</html>
